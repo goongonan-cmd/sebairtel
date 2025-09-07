@@ -1,40 +1,60 @@
-# SebairTel
+# SebairTel (React Edition) 🚀
 
-A project generated using Claude AI Code Organizer
+تطبيق SebairTel تم إعادة تطويره باستخدام React وجاهز للنشر النهائي!
 
-## Description
+## خطوات التشغيل المحلي
 
-This project was created using the Claude AI Code Organizer, which automatically structures and organizes AI-generated code for easy deployment and collaboration.
+1. تثبيت الاعتماديات:
+   ```
+   npm install
+   ```
 
-## Features
+2. تشغيل التطبيق:
+   ```
+   npm start
+   ```
 
-- **Language**: JavaScript
-- **Generated**: 9/7/2025
-- **Main File**: `main.js`
-
-## Usage
-
-```bash
-node main.js
-```
-
-## Project Structure
-
-```
-SebairTel/
-├── main.js           # Main code file
-├── README.md           # This file
-├── .gitignore          # Git ignore rules
-└── ...                 # Additional files
-```
-
-## AI Generated
-
-This code was generated using Claude AI and organized automatically. The structure follows best practices for JavaScript development.
-
-## License
-
-This project is open source and available under the [MIT License](LICENSE).
+سيفتح التطبيق تلقائيًا في متصفحك على: [http://localhost:3000](http://localhost:3000)
 
 ---
-*Generated with ❤️ by Claude AI Code Organizer*
+
+## خطوات النشر على Netlify/Vercel
+
+1. اربط المستودع مع Netlify أو Vercel.
+2. أنشئ مشروع جديد وحدد الأمر:
+   ```
+   npm run build
+   ```
+   أو
+   ```
+   yarn build
+   ```
+3. اختر مجلد النشر: `build`
+
+ستحصل على رابط مباشر لتطبيقك فور انتهاء النشر!
+
+---
+
+## هيكل المشروع
+
+```
+sebairtel/
+├── public/
+│   └── index.html
+├── src/
+│   ├── App.js
+│   ├── index.js
+│   ├── styles.css
+├── package.json
+└── README.md
+```
+
+## ملاحظات هامة
+- لتغيير نصوص أو إضافة صفحات، عدل أو أضف ملفات في مجلد `src/`.
+- التطبيق جاهز للتطوير المستقبلي بأي ميزة جديدة!
+
+---
+
+## حقوق النشر
+
+© 2025 SebairTel. جميع الحقوق محفوظة.
