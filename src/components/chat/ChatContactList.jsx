@@ -1,16 +1,28 @@
 import React from 'react';
 import { CheckCircle, UserPlus } from 'lucide-react';
 
-const ChatContactList = ({ allUsers, setAllUsers, friendRequests, setFriendRequests, currentUser, darkMode, setSelectedChat, setToast, addNotification }) => {
+const ChatContactList = ({ allUsers, setAllUsers, friendRequests, setFriendRequests, currentUser, darkMode, setSelectedChat, setToast, addNotification, messagesMap }) => {
   return (
     <div className="grid gap-3 max-w-xl mx-auto">
       <h4 className="font-bold text-md mb-2">الأصدقاء</h4>
-      {allUsers.filter(u => u.isFriend).map(user => (
-        <button key={user.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition-shadow w-full text-right" onClick={() => setSelectedChat({ id: user.id, name: user.name, avatar: user.avatar })}>
-          <span className="text-2xl">{user.avatar}</span>
-          <span className="font-bold">{user.name}</span>
-        </button>
-      ))}
+      {allUsers.filter(u => u.isFriend).map(user => {
+        const contactMessages = messagesMap[user.id] || [];
+        const lastMsg = contactMessages[contactMessages.length - 1];
+        return (
+          <button key={user.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition-shadow w-full text-right" onClick={() => setSelectedChat({ id: user.id, name: user.name, avatar: user.avatar })}>
+            <span className="text-2xl">{user.avatar}</span>
+            <div className="flex-1 min-w-0">
+              <span className="font-bold block">{user.name}</span>
+              {lastMsg && (
+                <span className="text-xs text-gray-400 block truncate">
+                  {lastMsg.user === 'أنت' ? 'أنت: ' : ''}{lastMsg.text ? lastMsg.text.substring(0, 40) : (lastMsg.type === 'image' ? '📷 صورة' : lastMsg.type === 'video' ? '🎥 فيديو' : '📎 ملف')}
+                </span>
+              )}
+            </div>
+            {lastMsg && <span className="text-xs text-gray-400 flex-shrink-0">{lastMsg.time}</span>}
+          </button>
+        );
+      })}
 
       {friendRequests.length > 0 && (
         <>
