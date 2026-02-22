@@ -9,37 +9,52 @@ const CodeBlock = ({ code, language, isRunnable = true, darkMode, setToast }) =>
 
     const runCode = () => {
         setOutput(null); setError(null); setRunMode(null);
-
         const isHtml = /<[a-z][\s\S]*>/i.test(code);
 
         if (isHtml) {
             setRunMode('html');
         } else {
             setRunMode('js');
-            const originalLog = console.log;
-            let logs = [];
-            console.log = (...args) => logs.push(args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : arg).join(' '));
+            const iframe = document.createElement('iframe');
+            iframe.sandbox = 'allow-scripts';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+
+            const logs = [];
+            const iframeWindow = iframe.contentWindow;
+            iframeWindow.console = {
+                log: (...args) => logs.push(args.map(arg => typeof arg === 'object' ? JSON.stringify(arg) : String(arg)).join(' ')),
+                error: (...args) => logs.push('Error: ' + args.join(' ')),
+                warn: (...args) => logs.push('Warning: ' + args.join(' ')),
+            };
+
             try {
-                new Function(code)();
+                iframeWindow.eval(code);
                 setOutput(logs.join('\n'));
             } catch (e) {
                 setError(e.toString());
             } finally {
-                console.log = originalLog;
+                document.body.removeChild(iframe);
             }
         }
     };
     
-    const copyCode = () => {
-        const textArea = document.createElement('textarea');
-        textArea.value = code;
-        document.body.appendChild(textArea);
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
+    const copyCode = async () => {
+        try {
+            await navigator.clipboard.writeText(code);
+        } catch {
+            const textArea = document.createElement('textarea');
+            textArea.value = code;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-9999px';
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+        }
         setIsCopied(true);
         setTimeout(() => setIsCopied(false), 2000);
-    }
+    };
 
     return (
         <div className={`mt-2 rounded-lg ${darkMode ? 'bg-gray-900' : 'bg-gray-800'} text-white font-mono`}>
@@ -59,7 +74,7 @@ const CodeBlock = ({ code, language, isRunnable = true, darkMode, setToast }) =>
             <pre className="p-3 text-sm whitespace-pre-wrap text-green-300"><code>{code}</code></pre>
             {runMode === 'js' && output !== null && <pre className={`p-3 text-xs border-t ${darkMode ? 'border-gray-700' : 'border-gray-600'} whitespace-pre-wrap text-white`}>{output || ' '}</pre>}
             {runMode === 'js' && error && <pre className={`p-3 text-xs border-t ${darkMode ? 'border-gray-700' : 'border-gray-600'} whitespace-pre-wrap text-red-400`}>{error}</pre>}
-            {runMode === 'html' && <iframe srcDoc={code} className="w-full h-64 border-t border-gray-700 bg-white" title="HTML Preview" sandbox="allow-scripts allow-same-origin"></iframe>}
+            {runMode === 'html' && <iframe srcDoc={code} className="w-full h-64 border-t border-gray-700 bg-white" title="HTML Preview" sandbox="allow-scripts"></iframe>}
         </div>
     );
 };

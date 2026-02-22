@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageCircle, User, Settings, 
   Moon, Sun,
@@ -18,7 +18,19 @@ import ChatContactList from './components/chat/ChatContactList';
 const App = () => {
   const [activeTab, setActiveTab] = useState('social');
   const [selectedChat, setSelectedChat] = useState(null); // State lifted up
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-darkMode');
+    return saved === 'true';
+  });
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('sebairtel-darkMode', darkMode);
+  }, [darkMode]);
   const currentUser = { id: 1, name: 'أحمد محمد', avatar: '👨‍💻' };
   
   const initialMessages = [
