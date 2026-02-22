@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   MessageCircle, User, Settings, 
   Moon, Sun,
@@ -28,27 +28,47 @@ const App = () => {
     { id: 4, user: 'أحمد محمد', type: 'text', text: 'هذا رائع. هل يمكنك مراجعة هذا الكود؟\n```js\nfunction greet(name) {\n  return `Hello, ${name}! Welcome to interactive chat.`;\n}\nconsole.log(greet("Developer"));\n```', time: '10:50', avatar: '👨‍💻', status: 'seen' },
   ];
 
-  const [messages, setMessages] = useState(initialMessages);
-  const [showConfirmation, setShowConfirmation] = useState({show: false, action: null, title: '', message: ''});
-  const [toast, setToast] = useState({ show: false, message: '' });
-  const [settings, setSettings] = useState({ notifications: true, privacy: false });
-  const [notifications, setNotifications] = useState([
+  const defaultSettings = { notifications: true, privacy: false };
+  const defaultNotifications = [
       {id: 1, type: 'like', user: 'فاطمة سالم', message: 'أعجبها منشورك.', time: 'منذ 5 دقائق', isRead: false},
       {id: 2, type: 'comment', user: 'علياء', message: 'علقت على منشورك: "عمل رائع!"', time: 'منذ 15 دقيقة', isRead: false},
       {id: 3, type: 'request', user: 'خالد', message: 'أرسل لك طلب صداقة.', time: 'منذ ساعة', isRead: true},
-  ]);
+  ];
+  const defaultAllUsers = [
+      { id: 1, name: 'أحمد محمد', avatar: '👨‍💻', isFriend: false, requestSent: false },
+      { id: 2, name: 'سارة أحمد', avatar: '👩‍🎨', isFriend: true, requestSent: false },
+      { id: 3, name: 'محمد العلي', avatar: '👨‍💼', isFriend: true, requestSent: false },
+      { id: 4, name: 'فاطمة سالم', avatar: '👩‍🔬', isFriend: false, requestSent: false },
+      { id: 5, name: 'علياء', avatar: '🧕', isFriend: false, requestSent: true },
+      { id: 6, name: 'خالد', avatar: '🧑‍🚀', isFriend: false, requestSent: false },
+  ];
+  const defaultFriendRequests = [
+      { id: 7, name: 'يوسف', avatar: '🧑‍🔧' }
+  ];
 
-    const [allUsers, setAllUsers] = useState([
-        { id: 1, name: 'أحمد محمد', avatar: '👨‍💻', isFriend: false, requestSent: false },
-        { id: 2, name: 'سارة أحمد', avatar: '👩‍🎨', isFriend: true, requestSent: false },
-        { id: 3, name: 'محمد العلي', avatar: '👨‍💼', isFriend: true, requestSent: false },
-        { id: 4, name: 'فاطمة سالم', avatar: '👩‍🔬', isFriend: false, requestSent: false },
-        { id: 5, name: 'علياء', avatar: '🧕', isFriend: false, requestSent: true },
-        { id: 6, name: 'خالد', avatar: '🧑‍🚀', isFriend: false, requestSent: false },
-    ]);
-    const [friendRequests, setFriendRequests] = useState([
-        { id: 7, name: 'يوسف', avatar: '🧑‍🔧' }
-    ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-messages');
+    return saved ? JSON.parse(saved) : initialMessages;
+  });
+  const [showConfirmation, setShowConfirmation] = useState({show: false, action: null, title: '', message: ''});
+  const [toast, setToast] = useState({ show: false, message: '' });
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-settings');
+    return saved ? JSON.parse(saved) : defaultSettings;
+  });
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-notifications');
+    return saved ? JSON.parse(saved) : defaultNotifications;
+  });
+
+    const [allUsers, setAllUsers] = useState(() => {
+      const saved = localStorage.getItem('sebairtel-allUsers');
+      return saved ? JSON.parse(saved) : defaultAllUsers;
+    });
+    const [friendRequests, setFriendRequests] = useState(() => {
+      const saved = localStorage.getItem('sebairtel-friendRequests');
+      return saved ? JSON.parse(saved) : defaultFriendRequests;
+    });
 
   const addNotification = (notification) => {
       if (settings.notifications) {
@@ -56,7 +76,7 @@ const App = () => {
       }
   }
 
-  const [posts, setPosts] = useState([
+  const defaultPosts = [
     { 
       id: 1, 
       user: 'محمد العلي', 
@@ -84,7 +104,36 @@ const App = () => {
       isSaved: true,
       comments: []
     }
-  ]);
+  ];
+
+  const [posts, setPosts] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-posts');
+    return saved ? JSON.parse(saved) : defaultPosts;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-messages', JSON.stringify(messages));
+  }, [messages]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-posts', JSON.stringify(posts));
+  }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-allUsers', JSON.stringify(allUsers));
+  }, [allUsers]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-friendRequests', JSON.stringify(friendRequests));
+  }, [friendRequests]);
 
   const addMessage = (message) => {
     setMessages(prev => [...prev, message]);
@@ -174,7 +223,7 @@ const App = () => {
       <main className="flex-1 container mx-auto px-2 py-4">
 
         {activeTab === 'social' && (
-          <SocialFeed posts={posts} setPosts={setPosts} darkMode={darkMode} handleShareToChat={handleShareToChat} />
+          <SocialFeed posts={posts} setPosts={setPosts} darkMode={darkMode} handleShareToChat={handleShareToChat} currentUser={currentUser} />
         )}
 
         {activeTab === 'community' && (
@@ -208,7 +257,7 @@ const App = () => {
         )}
 
         {activeTab === 'notifications' && (
-          <NotificationsTab notifications={notifications} darkMode={darkMode} />
+          <NotificationsTab notifications={notifications} setNotifications={setNotifications} darkMode={darkMode} />
         )}
 
         {activeTab === 'profile' && (

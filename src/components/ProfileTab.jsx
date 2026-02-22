@@ -1,5 +1,5 @@
 import React from 'react';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, Trash2 } from 'lucide-react';
 
 const ProfileTab = ({ currentUser, settings, setSettings, darkMode }) => {
   return (
@@ -20,6 +20,19 @@ const ProfileTab = ({ currentUser, settings, setSettings, darkMode }) => {
       </label>
       <div className="mt-4">
         <button className="px-4 py-2 rounded-lg bg-red-500 text-white flex items-center gap-2"><LogOut size={18} /> تسجيل الخروج</button>
+      </div>
+      <div className="mt-4 border-t pt-4">
+        <button
+          onClick={() => {
+            if (window.confirm('هل أنت متأكد من حذف جميع البيانات؟ لا يمكن التراجع عن هذا الإجراء.')) {
+              localStorage.clear();
+              window.location.reload();
+            }
+          }}
+          className="px-4 py-2 rounded-lg bg-gray-500 text-white hover:bg-gray-600 flex items-center gap-2 text-sm"
+        >
+          <Trash2 size={16} /> مسح جميع البيانات
+        </button>
       </div>
     </div>
   );

@@ -1,7 +1,7 @@
 import React from 'react';
-import { Download, Share2, Trash2 } from 'lucide-react';
+import { Download, Share2, Trash2, Edit3, CornerDownRight } from 'lucide-react';
 
-const MessageActions = ({ message, onDelete, setToast }) => {
+const MessageActions = ({ message, onDelete, onEdit, onReply, setToast }) => {
     const handleDownload = () => {
         if (!message.src) return;
         const a = document.createElement('a');
@@ -36,6 +36,8 @@ const MessageActions = ({ message, onDelete, setToast }) => {
         <div className="absolute top-0 -left-8 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1 bg-gray-300 dark:bg-gray-600 p-1 rounded-md">
             <button onClick={handleDownload} title="تنزيل" className="hover:bg-gray-400 dark:hover:bg-gray-500 p-1 rounded"><Download size={16} /></button>
             <button onClick={handleShare} title="مشاركة" className="hover:bg-gray-400 dark:hover:bg-gray-500 p-1 rounded"><Share2 size={16} /></button>
+            <button onClick={() => onEdit(message)} title="تعديل" className="hover:bg-gray-400 dark:hover:bg-gray-500 p-1 rounded"><Edit3 size={16} /></button>
+            <button onClick={() => onReply(message)} title="رد" className="hover:bg-gray-400 dark:hover:bg-gray-500 p-1 rounded"><CornerDownRight size={16} /></button>
             <button onClick={() => onDelete(message.id)} title="حذف" className="hover:bg-gray-400 dark:hover:bg-gray-500 p-1 rounded"><Trash2 size={16} /></button>
         </div>
     )

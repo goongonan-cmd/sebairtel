@@ -5,7 +5,7 @@ import {
   Paperclip, MoreVertical,
   CornerDownRight, X, File as FileIcon,
   MicOff, VideoOff, PhoneOff, Search, BellOff, XCircle,
-  ArrowLeft, Trash2
+  ArrowLeft, Trash2, Loader
 } from 'lucide-react';
 import MessageStatus from './MessageStatus';
 import MessageActions from './MessageActions';
@@ -23,6 +23,7 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
   const [isMuted, setIsMuted] = useState(false);
   const [isBlocked, setIsBlocked] = useState(false);
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   const typingTimeout = useRef(null);
   const chatEndRef = useRef(null);
@@ -62,6 +63,17 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
     const textToSend = content || newMessage;
     if (!textToSend.trim() && !attachment) return;
 
+    if (editingMessage) {
+        setMessages(messages.map(m =>
+            m.id === editingMessage.id
+                ? { ...m, text: textToSend, edited: true }
+                : m
+        ));
+        setEditingMessage(null);
+        setNewMessage('');
+        return;
+    }
+
     let message;
     const baseMessage = {
         id: Date.now(),
@@ -94,6 +106,7 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
     const file = e.target.files[0];
     if (!file) return;
 
+    setIsUploadingFile(true);
     const reader = new FileReader();
     reader.onload = (event) => {
         const fileDataUrl = event.target.result;
@@ -104,6 +117,11 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
         } else {
             setAttachment({ type: 'file', src: fileDataUrl, fileInfo: { name: file.name, size: file.size, type: file.type } });
         }
+        setIsUploadingFile(false);
+    };
+    reader.onerror = () => {
+        setIsUploadingFile(false);
+        setToast({ show: true, message: 'فشل تحميل الملف' });
     };
     reader.readAsDataURL(file);
     e.target.value = null;
@@ -255,7 +273,7 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
                   <div className="flex justify-end gap-2 mt-1">
                     <MessageStatus status={message.status} />
                   </div>
-                  <MessageActions message={message} onDelete={handleDeleteMessage} setToast={setToast} />
+                  <MessageActions message={message} onDelete={handleDeleteMessage} onEdit={(msg) => { setEditingMessage(msg); setNewMessage(msg.text || ''); }} onReply={(msg) => setReplyingTo(msg)} setToast={setToast} />
                 </div>
               </div>
             ))}
@@ -301,8 +319,8 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
           <div className="p-3 border-t dark:border-gray-700">
             <div className="flex items-end gap-2">
               <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
-              <button onClick={() => fileInputRef.current.click()} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0">
-                <Paperclip size={18} />
+              <button onClick={() => fileInputRef.current.click()} disabled={isUploadingFile} className={`p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0 ${isUploadingFile ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                {isUploadingFile ? <Loader className="animate-spin" size={18} /> : <Paperclip size={18} />}
               </button>
               <textarea
                 ref={textareaRef}

@@ -36,7 +36,7 @@ const MessageContent = ({ message, darkMode, formatFileSize, setToast }) => {
             if (codeMatch) {
                 return <CodeBlock code={codeMatch[2]} language={codeMatch[1]} darkMode={darkMode} setToast={setToast} />;
             }
-            return <span>{message.text}</span>;
+            return <span>{message.text}{message.edited && <span className="text-xs text-gray-400 mr-1">(معدّل)</span>}</span>;
     }
 };
 
