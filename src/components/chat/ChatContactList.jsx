@@ -1,10 +1,17 @@
 import React from 'react';
-import { CheckCircle, UserPlus } from 'lucide-react';
+import { CheckCircle, UserPlus, Users as UsersGroupIcon } from 'lucide-react';
 
 const ChatContactList = ({ allUsers, setAllUsers, friendRequests, setFriendRequests, currentUser, darkMode, setSelectedChat, setToast, addNotification }) => {
   return (
     <div className="grid gap-3 max-w-xl mx-auto">
       <h4 className="font-bold text-md mb-2">الأصدقاء</h4>
+      {allUsers.filter(u => u.isFriend).length === 0 && (
+        <div className="text-center py-8 text-gray-400">
+          <UsersGroupIcon size={48} className="mx-auto mb-2 opacity-50" />
+          <p>لا يوجد أصدقاء بعد</p>
+          <p className="text-sm">أضف أصدقاء من الأشخاص الذين قد تعرفهم أدناه</p>
+        </div>
+      )}
       {allUsers.filter(u => u.isFriend).map(user => (
         <button key={user.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition-shadow w-full text-right" onClick={() => setSelectedChat({ id: user.id, name: user.name, avatar: user.avatar })}>
           <span className="text-2xl">{user.avatar}</span>

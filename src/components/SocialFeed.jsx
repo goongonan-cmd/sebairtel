@@ -1,11 +1,18 @@
 import React from 'react';
 import { Heart, MessageSquare, Share2, Users as UsersGroupIcon } from 'lucide-react';
 
-const SocialFeed = ({ posts, setPosts, darkMode, handleShareToChat }) => {
+const SocialFeed = ({ posts, setPosts, darkMode, handleShareToChat, currentUser }) => {
   return (
     <div>
       <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><UsersGroupIcon /> منشورات الأصدقاء</h2>
       <div className="grid gap-4">
+        {posts.length === 0 && (
+          <div className="text-center py-12 text-gray-400">
+            <MessageSquare size={64} className="mx-auto mb-3 opacity-30" />
+            <p className="font-bold text-lg">لا توجد منشورات بعد</p>
+            <p className="text-sm">كن أول من ينشر!</p>
+          </div>
+        )}
         {posts.map(post => (
           <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
             <div className="flex items-center gap-3 mb-2">
@@ -39,6 +46,36 @@ const SocialFeed = ({ posts, setPosts, darkMode, handleShareToChat }) => {
                 ))}
               </div>
             )}
+            <div className="border-t pt-2 mt-2">
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const input = e.target.elements.commentInput;
+                  const text = input.value.trim();
+                  if (!text) return;
+                  setPosts(posts.map(p =>
+                    p.id === post.id
+                      ? { ...p, comments: [...p.comments, { user: currentUser.name, text }] }
+                      : p
+                  ));
+                  input.value = '';
+                }}
+                className="flex gap-2"
+              >
+                <input
+                  name="commentInput"
+                  type="text"
+                  placeholder="أضف تعليقاً..."
+                  className={`flex-1 px-3 py-1 rounded-lg border text-sm ${darkMode ? 'bg-gray-700 border-gray-600 text-white' : 'bg-white border-gray-300'}`}
+                />
+                <button
+                  type="submit"
+                  className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600"
+                >
+                  إرسال
+                </button>
+              </form>
+            </div>
           </div>
         ))}
       </div>
