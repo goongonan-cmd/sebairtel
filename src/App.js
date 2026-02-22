@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { 
-  MessageCircle, Phone, Video, Users, User, Settings, 
-  Moon, Sun, Send, Mic, Code, Globe, Camera, 
-  Share2, Heart, ThumbsUp, Edit3, Play, Pause,
-  Copy, Download, Zap, Brain, Image as ImageIcon,
-  FileText, Monitor, PhoneCall, VideoIcon, UsersIcon,
-  Award, Shield, Bell, Eye, Lock, Palette, Languages,
-  Paperclip, MoreVertical, ArrowDown, Smile, Check, CheckCheck, 
-  MessageSquare, Edit, Trash2, CornerDownRight, X, File as FileIcon,
-  MicOff, VideoOff, PhoneOff, Search, BellOff, XCircle, Grid, Tv, LogOut, Upload, Loader, Repeat, Link,
-  Twitter, Facebook, Linkedin, Bookmark, Flag, Plus, Star, Users as UsersGroupIcon, ArrowRight, ChevronRight, ChevronLeft, HelpCircle, KeyRound,
-  Landmark, ShoppingCart, Car, Receipt, Mail, AppWindow, UserPlus, Store, Newspaper, CheckCircle, UserX, ArrowLeft
+  MessageCircle, Phone, Video, User, Settings, 
+  Moon, Sun, Send, Code,
+  Share2, Heart, Edit3, Play,
+  Copy, Download,
+  Bell,
+  Paperclip, MoreVertical, Check, CheckCheck, 
+  MessageSquare, Trash2, CornerDownRight, X, File as FileIcon,
+  MicOff, VideoOff, PhoneOff, Search, BellOff, XCircle, LogOut,
+  Users as UsersGroupIcon, UserPlus, CheckCircle, ArrowLeft
 } from 'lucide-react';
 
 // --- Helper & Global Components ---
@@ -471,4 +469,376 @@ const App = () => {
             );
         default: // text
             const codeBlockRegex = /```(\w+)?\n([\s\S]+?)```/;
-            const codeMatch = !message.deleted && message.text
+            const codeMatch = !message.deleted && message.text && message.text.match(codeBlockRegex);
+            if (codeMatch) {
+                return <CodeBlock code={codeMatch[2]} language={codeMatch[1]} />;
+            }
+            return <span>{message.text}</span>;
+    }
+  };
+
+  return (
+    <div className="relative bg-white dark:bg-gray-800 rounded-xl shadow max-w-xl mx-auto flex flex-col" style={{ height: '70vh' }}>
+      {inCall && (
+        <div className="absolute inset-0 z-20 bg-gradient-to-b from-gray-900 to-gray-800 rounded-xl flex flex-col items-center justify-center text-white">
+          <span className="text-5xl mb-4">{chat.avatar || '👤'}</span>
+          <h3 className="text-xl font-bold mb-1">{chat.name}</h3>
+          <p className="text-sm text-gray-300 mb-6">{callType === 'video' ? 'مكالمة فيديو' : 'مكالمة صوتية'}...</p>
+          <div className="flex gap-4">
+            <button onClick={() => setIsMuted(!isMuted)} className={`p-3 rounded-full ${isMuted ? 'bg-red-500' : 'bg-gray-600'}`}>
+              <MicOff size={20} />
+            </button>
+            {callType === 'video' && (
+              <button className="p-3 rounded-full bg-gray-600">
+                <VideoOff size={20} />
+              </button>
+            )}
+            <button onClick={endCall} className="p-3 rounded-full bg-red-600">
+              <PhoneOff size={20} />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between p-3 border-b dark:border-gray-700">
+        <div className="flex items-center gap-3">
+          <button onClick={onBack} className="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <ArrowLeft size={20} />
+          </button>
+          <span className="text-2xl">{chat.avatar || '👤'}</span>
+          <div>
+            <h3 className="font-bold text-sm">{chat.name}</h3>
+            {isTyping && <span className="text-xs text-green-500">يكتب...</span>}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => startCall('voice')} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <Phone size={18} />
+          </button>
+          <button onClick={() => startCall('video')} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+            <Video size={18} />
+          </button>
+          <div className="relative" ref={menuRef}>
+            <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700">
+              <MoreVertical size={18} />
+            </button>
+            {isMenuOpen && (
+              <div className={`absolute left-0 top-full mt-1 w-48 rounded-lg shadow-lg z-30 ${darkMode ? 'bg-gray-700' : 'bg-white'} border dark:border-gray-600`}>
+                <button onClick={() => handleMenuAction('search')} className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600 rounded-t-lg">
+                  <Search size={16} /> بحث
+                </button>
+                <button onClick={() => handleMenuAction('mute')} className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                  <BellOff size={16} /> {isMuted ? 'إلغاء الكتم' : 'كتم الإشعارات'}
+                </button>
+                <button onClick={() => handleMenuAction('clear')} className="w-full flex items-center gap-2 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-600">
+                  <Trash2 size={16} /> مسح المحادثة
+                </button>
+                <button onClick={() => handleMenuAction('block')} className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-b-lg">
+                  <XCircle size={16} /> حظر المستخدم
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isBlocked ? (
+        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+          <XCircle size={48} className="mb-2" />
+          <p className="font-bold">تم حظر هذا المستخدم</p>
+          <p className="text-sm">لن تتمكن من إرسال أو استقبال رسائل</p>
+          <button onClick={() => setIsBlocked(false)} className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg text-sm">إلغاء الحظر</button>
+        </div>
+      ) : (
+        <>
+          <div className="flex-1 overflow-y-auto p-3 space-y-3">
+            {messages.map(message => (
+              <div key={message.id} className={`group flex ${message.user === 'أنت' ? 'justify-end' : 'justify-start'}`}>
+                <div className={`relative p-3 rounded-lg max-w-xs ${message.user === 'أنت' ? 'bg-blue-100 dark:bg-blue-900' : 'bg-gray-200 dark:bg-gray-700'}`}>
+                  {message.replyTo && (
+                    <div className={`text-xs mb-1 p-1 rounded border-r-2 border-blue-400 ${darkMode ? 'bg-gray-600' : 'bg-gray-300'}`}>
+                      <CornerDownRight size={12} className="inline ml-1" />
+                      رد على رسالة
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-lg">{message.avatar}</span>
+                    <span className="font-semibold text-xs">{message.user}</span>
+                    <span className="text-xs text-gray-400">{message.time}</span>
+                  </div>
+                  <MessageContent message={message} />
+                  <div className="flex justify-end gap-2 mt-1">
+                    <MessageStatus status={message.status} />
+                  </div>
+                  <MessageActions message={message} onDelete={handleDeleteMessage} />
+                </div>
+              </div>
+            ))}
+            <div ref={chatEndRef}></div>
+          </div>
+
+          {replyingTo && (
+            <div className={`flex items-center justify-between px-3 py-2 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
+              <div className="flex items-center gap-2 text-sm">
+                <CornerDownRight size={14} className="text-blue-500" />
+                <span>رد على: <strong>{replyingTo.user}</strong></span>
+              </div>
+              <button onClick={() => setReplyingTo(null)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {editingMessage && (
+            <div className={`flex items-center justify-between px-3 py-2 border-t ${darkMode ? 'border-gray-700 bg-gray-900' : 'border-gray-200 bg-gray-50'}`}>
+              <div className="flex items-center gap-2 text-sm">
+                <Edit3 size={14} className="text-yellow-500" />
+                <span>تعديل الرسالة</span>
+              </div>
+              <button onClick={() => setEditingMessage(null)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          {attachment && (
+            <div className={`flex items-center gap-2 px-3 py-2 border-t ${darkMode ? 'border-gray-700' : 'border-gray-200'}`}>
+              {attachment.type === 'image' && <img src={attachment.src} alt="preview" className="w-16 h-16 object-cover rounded" />}
+              {attachment.type === 'video' && <Video size={24} className="text-blue-500" />}
+              {attachment.type === 'file' && <FileIcon size={24} />}
+              <span className="text-sm flex-1 truncate">{attachment.fileInfo?.name}</span>
+              <button onClick={() => setAttachment(null)} className="p-1 rounded hover:bg-gray-200 dark:hover:bg-gray-600">
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
+          <div className="p-3 border-t dark:border-gray-700">
+            <div className="flex items-end gap-2">
+              <input type="file" ref={fileInputRef} onChange={handleFileSelect} className="hidden" />
+              <button onClick={() => fileInputRef.current.click()} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0">
+                <Paperclip size={18} />
+              </button>
+              <textarea
+                ref={textareaRef}
+                className={`flex-1 rounded-lg p-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${darkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300'}`}
+                rows={1}
+                value={newMessage}
+                onChange={handleTyping}
+                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
+                placeholder="اكتب رسالة..."
+              />
+              <button onClick={handleSendCode} className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 flex-shrink-0">
+                <Code size={18} />
+              </button>
+              <button onClick={() => handleSendMessage()} className="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 flex-shrink-0">
+                <Send size={18} />
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+  };
+
+  return (
+    <div className={`min-h-screen flex flex-col ${darkMode ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-800'}`}>
+      <Toast message={toast.message} show={toast.show} onDismiss={() => setToast({ show: false, message: '' })} darkMode={darkMode} />
+      <ConfirmationModal {...showConfirmation} onConfirm={confirmAction} onCancel={cancelAction} darkMode={darkMode} />
+
+      <header className="flex items-center justify-between px-4 py-2 shadow-sm bg-white dark:bg-gray-800">
+        <div className="flex items-center gap-4">
+          <NewSebairTelLogo className="w-12 h-12" />
+          <div>
+            <h1 className="font-bold text-xl">SebairTel</h1>
+            <span className="text-blue-600 text-sm">منصة الاتصالات الذكية</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setDarkMode(!darkMode)} className="p-2 rounded-full bg-gray-200 dark:bg-gray-700">
+            {darkMode ? <Sun /> : <Moon />}
+          </button>
+          <button className="p-2 rounded-full bg-gray-200 dark:bg-gray-700"><Settings /></button>
+        </div>
+      </header>
+
+      <nav className="flex justify-center gap-2 py-2 bg-gray-50 dark:bg-gray-900 border-b">
+        <button className={`px-4 py-2 rounded-full flex items-center gap-2 ${activeTab === 'social' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`} onClick={() => setActiveTab('social')}>
+          <UsersGroupIcon size={18} /> الشبكة
+        </button>
+        <button className={`px-4 py-2 rounded-full flex items-center gap-2 ${activeTab === 'community' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`} onClick={() => setActiveTab('community')}>
+          <MessageCircle size={18} /> الدردشة
+        </button>
+        <button className={`px-4 py-2 rounded-full flex items-center gap-2 ${activeTab === 'notifications' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`} onClick={() => setActiveTab('notifications')}>
+          <Bell size={18} /> الإشعارات
+        </button>
+        <button className={`px-4 py-2 rounded-full flex items-center gap-2 ${activeTab === 'profile' ? 'bg-blue-500 text-white' : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white'}`} onClick={() => setActiveTab('profile')}>
+          <User size={18} /> حسابي
+        </button>
+      </nav>
+
+      <main className="flex-1 container mx-auto px-2 py-4">
+
+        {activeTab === 'social' && (
+          <div>
+            <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><UsersGroupIcon /> منشورات الأصدقاء</h2>
+            <div className="grid gap-4">
+              {posts.map(post => (
+                <div key={post.id} className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="text-2xl">{post.avatar}</span>
+                    <span className="font-bold">{post.user}</span>
+                    <span className="text-xs text-gray-400">{post.time}</span>
+                  </div>
+                  <div className="mb-2">{post.content}</div>
+                  {post.media && post.media.type === 'image' && <img src={post.media.src} alt="post" className="rounded-lg mb-2 max-w-full h-auto" />}
+                  <div className="flex gap-2 mb-2">
+                    <button className={`flex items-center gap-1 px-2 py-1 rounded ${post.isLiked ? 'bg-red-200 text-red-600' : 'bg-gray-200 dark:bg-gray-700'}`} onClick={() => {
+                      setPosts(posts.map(p => p.id === post.id ? { ...p, isLiked: !p.isLiked, likes: p.isLiked ? p.likes - 1 : p.likes + 1 } : p));
+                    }}>
+                      <Heart size={16} /> {post.likes}
+                    </button>
+                    <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-200 dark:bg-gray-700">
+                      <MessageSquare size={16} /> {post.comments.length}
+                    </button>
+                    <button className="flex items-center gap-1 px-2 py-1 rounded bg-gray-200 dark:bg-gray-700" onClick={() => handleShareToChat(post)}>
+                      <Share2 size={16} /> مشاركة في الدردشة
+                    </button>
+                  </div>
+                  {post.comments.length > 0 && (
+                    <div className="border-t pt-2 mt-2">
+                      <h4 className="font-semibold text-sm mb-1">تعليقات:</h4>
+                      {post.comments.map((c, i) => (
+                        <div key={i} className="text-xs text-gray-700 dark:text-gray-200 mb-1 flex gap-2 items-center">
+                          <span className="font-bold">{c.user}:</span>
+                          <span>{c.text}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'community' && (
+          <div>
+            <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><MessageCircle /> الدردشة</h2>
+            {selectedChat ? (
+              <ChatTab
+                chat={selectedChat}
+                messages={messages}
+                setMessages={setMessages}
+                darkMode={darkMode}
+                addMessage={addMessage}
+                onBack={() => setSelectedChat(null)}
+              />
+            ) : (
+              <div className="grid gap-3 max-w-xl mx-auto">
+                <h4 className="font-bold text-md mb-2">الأصدقاء</h4>
+                {allUsers.filter(u => u.isFriend).map(user => (
+                  <button key={user.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow hover:shadow-md transition-shadow w-full text-right" onClick={() => setSelectedChat({ id: user.id, name: user.name, avatar: user.avatar })}>
+                    <span className="text-2xl">{user.avatar}</span>
+                    <span className="font-bold">{user.name}</span>
+                  </button>
+                ))}
+
+                {friendRequests.length > 0 && (
+                  <>
+                    <h4 className="font-bold text-md mt-4 mb-2">طلبات الصداقة</h4>
+                    {friendRequests.map(req => (
+                      <div key={req.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow">
+                        <span className="text-2xl">{req.avatar}</span>
+                        <span className="font-bold flex-1">{req.name}</span>
+                        <button onClick={() => {
+                          setAllUsers(prev => [...prev, { ...req, isFriend: true, requestSent: false }]);
+                          setFriendRequests(prev => prev.filter(r => r.id !== req.id));
+                          addNotification({ id: Date.now(), type: 'friend', user: req.name, message: 'أصبحتما أصدقاء الآن!', time: 'الآن', isRead: false });
+                        }} className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm flex items-center gap-1">
+                          <CheckCircle size={14} /> قبول
+                        </button>
+                        <button onClick={() => {
+                          setFriendRequests(prev => prev.filter(r => r.id !== req.id));
+                        }} className="px-3 py-1 bg-gray-200 dark:bg-gray-700 rounded-lg text-sm">
+                          رفض
+                        </button>
+                      </div>
+                    ))}
+                  </>
+                )}
+
+                <h4 className="font-bold text-md mt-4 mb-2">أشخاص قد تعرفهم</h4>
+                {allUsers.filter(u => !u.isFriend && u.id !== currentUser.id).map(user => (
+                  <div key={user.id} className="flex items-center gap-3 px-4 py-3 rounded-lg bg-white dark:bg-gray-800 shadow">
+                    <span className="text-2xl">{user.avatar}</span>
+                    <span className="font-bold flex-1">{user.name}</span>
+                    {user.requestSent ? (
+                      <span className="text-sm text-gray-400">تم الإرسال</span>
+                    ) : (
+                      <button onClick={() => {
+                        setAllUsers(prev => prev.map(u => u.id === user.id ? { ...u, requestSent: true } : u));
+                        setToast({ show: true, message: `تم إرسال طلب صداقة إلى ${user.name}` });
+                      }} className="px-3 py-1 bg-blue-500 text-white rounded-lg text-sm flex items-center gap-1">
+                        <UserPlus size={14} /> إضافة
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'notifications' && (
+          <div>
+            <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><Bell /> الإشعارات</h2>
+            <div className="max-w-xl mx-auto grid gap-3">
+              {notifications.length === 0 && <div className="text-gray-400">لا توجد إشعارات بعد.</div>}
+              {notifications.map(n => (
+                <div key={n.id} className={`p-3 rounded-lg flex items-center gap-3 ${n.isRead ? 'bg-gray-100 dark:bg-gray-800' : 'bg-yellow-50 dark:bg-yellow-900'}`}>
+                  <span className="text-2xl">{n.user[0]}</span>
+                  <div className="flex-1">
+                    <div className="font-semibold">{n.user}</div>
+                    <div className="text-sm">{n.message}</div>
+                  </div>
+                  <span className="text-xs text-gray-400">{n.time}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="max-w-xl mx-auto">
+            <h2 className="font-bold text-lg mb-4 flex items-center gap-2"><User /> حسابي</h2>
+            <div className="flex items-center gap-4 mb-4">
+              <span className="text-4xl">{currentUser.avatar}</span>
+              <span className="font-bold text-xl">{currentUser.name}</span>
+            </div>
+            <div className="mb-2">إعدادات:</div>
+            <label className="flex items-center gap-2 mb-2">
+              <input type="checkbox" checked={settings.notifications} onChange={e => setSettings({...settings, notifications: e.target.checked})} />
+              تفعيل الإشعارات
+            </label>
+            <label className="flex items-center gap-2 mb-2">
+              <input type="checkbox" checked={settings.privacy} onChange={e => setSettings({...settings, privacy: e.target.checked})} />
+              وضع الخصوصية
+            </label>
+            <div className="mt-4">
+              <button className="px-4 py-2 rounded-lg bg-red-500 text-white flex items-center gap-2"><LogOut size={18} /> تسجيل الخروج</button>
+            </div>
+          </div>
+        )}
+
+      </main>
+
+      <footer className="text-center py-6 text-gray-400 text-xs">
+        SebairTel © جميع الحقوق محفوظة 2025
+      </footer>
+    </div>
+  );
+};
+
+export default App;
