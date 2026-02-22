@@ -16,7 +16,6 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
   const [attachment, setAttachment] = useState(null);
   const [editingMessage, setEditingMessage] = useState(null);
   const [replyingTo, setReplyingTo] = useState(null);
-  const [isTyping, setIsTyping] = useState(false);
   const [inCall, setInCall] = useState(false);
   const [callType, setCallType] = useState(null);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -24,7 +23,6 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
   const [isBlocked, setIsBlocked] = useState(false);
   const [isProfileSidebarOpen, setIsProfileSidebarOpen] = useState(false);
 
-  const typingTimeout = useRef(null);
   const chatEndRef = useRef(null);
   const textareaRef = useRef(null);
   const fileInputRef = useRef(null);
@@ -51,12 +49,7 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const handleTyping = (e) => {
-    setNewMessage(e.target.value);
-    if(typingTimeout.current) clearTimeout(typingTimeout.current);
-    setIsTyping(true);
-    typingTimeout.current = setTimeout(() => setIsTyping(false), 2000);
-  }
+
 
   const handleSendMessage = (content) => {
     const textToSend = content || newMessage;
@@ -193,7 +186,6 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
           <span className="text-2xl">{chat.avatar || '👤'}</span>
           <div>
             <h3 className="font-bold text-sm">{chat.name}</h3>
-            {isTyping && <span className="text-xs text-green-500">يكتب...</span>}
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -309,7 +301,7 @@ const ChatTab = ({ chat, messages, setMessages, darkMode, addMessage, onBack, se
                 className={`flex-1 rounded-lg p-2 border focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none ${darkMode ? 'bg-gray-900 border-gray-700 text-white' : 'bg-white border-gray-300'}`}
                 rows={1}
                 value={newMessage}
-                onChange={handleTyping}
+                onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
                 placeholder="اكتب رسالة..."
               />

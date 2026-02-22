@@ -17,7 +17,7 @@ import ChatContactList from './components/chat/ChatContactList';
 
 const App = () => {
   const [activeTab, setActiveTab] = useState('social');
-  const [selectedChat, setSelectedChat] = useState(null); // State lifted up
+  const [selectedChat, setSelectedChat] = useState(null);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('sebairtel-darkMode');
     return saved === 'true';
@@ -32,43 +32,20 @@ const App = () => {
     localStorage.setItem('sebairtel-darkMode', darkMode);
   }, [darkMode]);
   const currentUser = { id: 1, name: 'أحمد محمد', avatar: '👨‍💻' };
-  
-  const initialMessages = [
-    { id: 1, user: 'أحمد محمد', type: 'text', text: 'مرحباً! كيف حالك اليوم؟', time: '10:30', avatar: '👨‍💻', status: 'seen' },
-    { id: 2, user: 'سارة أحمد', type: 'text', text: 'أعمل على مشروع جديد، هل يمكنك مساعدتي؟ https://example.com', time: '10:45', avatar: '👩‍🎨', status: 'seen', suggestions: ['بالتأكيد!', 'متى نبدأ؟', 'أنا مشغول الآن'] },
-    { id: 3, user: 'أنت', type: 'text', text: 'أهلاً سارة، بالطبع يمكنني المساعدة.', time: '10:46', avatar: '👤', status: 'seen', replyTo: 2 },
-    { id: 4, user: 'أحمد محمد', type: 'text', text: 'هذا رائع. هل يمكنك مراجعة هذا الكود؟\n```js\nfunction greet(name) {\n  return `Hello, ${name}! Welcome to interactive chat.`;\n}\nconsole.log(greet("Developer"));\n```', time: '10:50', avatar: '👨‍💻', status: 'seen' },
-  ];
 
-  const [messages, setMessages] = useState(initialMessages);
-  const [showConfirmation, setShowConfirmation] = useState({show: false, action: null, title: '', message: ''});
-  const [toast, setToast] = useState({ show: false, message: '' });
-  const [settings, setSettings] = useState({ notifications: true, privacy: false });
-  const [notifications, setNotifications] = useState([
-      {id: 1, type: 'like', user: 'فاطمة سالم', message: 'أعجبها منشورك.', time: 'منذ 5 دقائق', isRead: false},
-      {id: 2, type: 'comment', user: 'علياء', message: 'علقت على منشورك: "عمل رائع!"', time: 'منذ 15 دقيقة', isRead: false},
-      {id: 3, type: 'request', user: 'خالد', message: 'أرسل لك طلب صداقة.', time: 'منذ ساعة', isRead: true},
-  ]);
+  const initialMessagesMap = {
+    2: [
+      { id: 1, user: 'سارة أحمد', type: 'text', text: 'مرحباً! كيف حالك اليوم؟', time: '10:30', avatar: '👩‍🎨', status: 'seen' },
+      { id: 2, user: 'سارة أحمد', type: 'text', text: 'أعمل على مشروع جديد، هل يمكنك مساعدتي؟', time: '10:45', avatar: '👩‍🎨', status: 'seen' },
+      { id: 3, user: 'أنت', type: 'text', text: 'أهلاً سارة، بالطبع يمكنني المساعدة.', time: '10:46', avatar: '👤', status: 'seen', replyTo: 2 },
+    ],
+    3: [
+      { id: 101, user: 'محمد العلي', type: 'text', text: 'هل يمكنك مراجعة هذا الكود؟\n```js\nfunction greet(name) {\n  return `Hello, ${name}!`;\n}\nconsole.log(greet("Developer"));\n```', time: '10:50', avatar: '👨‍💼', status: 'seen' },
+      { id: 102, user: 'أنت', type: 'text', text: 'سأراجعه الآن.', time: '10:55', avatar: '👤', status: 'delivered' },
+    ]
+  };
 
-    const [allUsers, setAllUsers] = useState([
-        { id: 1, name: 'أحمد محمد', avatar: '👨‍💻', isFriend: false, requestSent: false },
-        { id: 2, name: 'سارة أحمد', avatar: '👩‍🎨', isFriend: true, requestSent: false },
-        { id: 3, name: 'محمد العلي', avatar: '👨‍💼', isFriend: true, requestSent: false },
-        { id: 4, name: 'فاطمة سالم', avatar: '👩‍🔬', isFriend: false, requestSent: false },
-        { id: 5, name: 'علياء', avatar: '🧕', isFriend: false, requestSent: true },
-        { id: 6, name: 'خالد', avatar: '🧑‍🚀', isFriend: false, requestSent: false },
-    ]);
-    const [friendRequests, setFriendRequests] = useState([
-        { id: 7, name: 'يوسف', avatar: '🧑‍🔧' }
-    ]);
-
-  const addNotification = (notification) => {
-      if (settings.notifications) {
-          setNotifications(prev => [notification, ...prev]);
-      }
-  }
-
-  const [posts, setPosts] = useState([
+  const initialPosts = [
     { 
       id: 1, 
       user: 'محمد العلي', 
@@ -89,17 +66,102 @@ const App = () => {
       user: 'فاطمة سالم',
       avatar: '👩‍🔬',
       content: 'شكراً لكم على SebairTel! أصبح التواصل والعمل أسهل بكثير مع الميزات الذكية 💙',
-      media: {type: 'image', src: 'https://placehold.co/600x400/a3e635/172554?text=SebairTel+Screenshot'},
+      media: null,
       time: 'منذ 4 ساعات',
       likes: 42,
       isLiked: true,
       isSaved: true,
       comments: []
     }
-  ]);
+  ];
 
-  const addMessage = (message) => {
-    setMessages(prev => [...prev, message]);
+  const initialNotifications = [
+    {id: 1, type: 'like', user: 'فاطمة سالم', message: 'أعجبها منشورك.', time: 'منذ 5 دقائق', isRead: false},
+    {id: 2, type: 'comment', user: 'علياء', message: 'علقت على منشورك: "عمل رائع!"', time: 'منذ 15 دقيقة', isRead: false},
+    {id: 3, type: 'request', user: 'خالد', message: 'أرسل لك طلب صداقة.', time: 'منذ ساعة', isRead: true},
+  ];
+
+  const initialAllUsers = [
+    { id: 1, name: 'أحمد محمد', avatar: '👨‍💻', isFriend: false, requestSent: false },
+    { id: 2, name: 'سارة أحمد', avatar: '👩‍🎨', isFriend: true, requestSent: false },
+    { id: 3, name: 'محمد العلي', avatar: '👨‍💼', isFriend: true, requestSent: false },
+    { id: 4, name: 'فاطمة سالم', avatar: '👩‍🔬', isFriend: false, requestSent: false },
+    { id: 5, name: 'علياء', avatar: '🧕', isFriend: false, requestSent: true },
+    { id: 6, name: 'خالد', avatar: '🧑‍🚀', isFriend: false, requestSent: false },
+  ];
+
+  const initialFriendRequests = [
+    { id: 7, name: 'يوسف', avatar: '🧑‍🔧' }
+  ];
+
+  const [messagesMap, setMessagesMap] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-messagesMap');
+    return saved ? JSON.parse(saved) : initialMessagesMap;
+  });
+
+  const [showConfirmation, setShowConfirmation] = useState({show: false, action: null, title: '', message: ''});
+  const [toast, setToast] = useState({ show: false, message: '' });
+
+  const [settings, setSettings] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-settings');
+    return saved ? JSON.parse(saved) : { notifications: true, privacy: false };
+  });
+
+  const [notifications, setNotifications] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-notifications');
+    return saved ? JSON.parse(saved) : initialNotifications;
+  });
+
+  const [allUsers, setAllUsers] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-allUsers');
+    return saved ? JSON.parse(saved) : initialAllUsers;
+  });
+
+  const [friendRequests, setFriendRequests] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-friendRequests');
+    return saved ? JSON.parse(saved) : initialFriendRequests;
+  });
+
+  const [posts, setPosts] = useState(() => {
+    const saved = localStorage.getItem('sebairtel-posts');
+    return saved ? JSON.parse(saved) : initialPosts;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-messagesMap', JSON.stringify(messagesMap));
+  }, [messagesMap]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-settings', JSON.stringify(settings));
+  }, [settings]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-allUsers', JSON.stringify(allUsers));
+  }, [allUsers]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-friendRequests', JSON.stringify(friendRequests));
+  }, [friendRequests]);
+
+  useEffect(() => {
+    localStorage.setItem('sebairtel-posts', JSON.stringify(posts));
+  }, [posts]);
+
+  const addNotification = (notification) => {
+      if (settings.notifications) {
+          setNotifications(prev => [notification, ...prev]);
+      }
+  }
+
+  const addMessage = (contactId, message) => {
+    setMessagesMap(prev => ({
+      ...prev,
+      [contactId]: [...(prev[contactId] || []), message]
+    }));
   };
   
   const handleShareToChat = (post) => {
@@ -130,9 +192,9 @@ const App = () => {
       };
     }
     
-    addMessage(message);
+    addMessage(2, message);
     setToast({ show: true, message: 'تمت مشاركة المنشور في الدردشة!' });
-    setSelectedChat({id: 2, name: 'سارة أحمد'}); // Navigate to chat
+    setSelectedChat({id: 2, name: 'سارة أحمد'});
     setActiveTab('community');
   };
 
@@ -195,10 +257,22 @@ const App = () => {
             {selectedChat ? (
               <ChatTab
                 chat={selectedChat}
-                messages={messages}
-                setMessages={setMessages}
+                messages={messagesMap[selectedChat.id] || []}
+                setMessages={(newMsgs) => {
+                  if (typeof newMsgs === 'function') {
+                    setMessagesMap(prev => ({
+                      ...prev,
+                      [selectedChat.id]: newMsgs(prev[selectedChat.id] || [])
+                    }));
+                  } else {
+                    setMessagesMap(prev => ({
+                      ...prev,
+                      [selectedChat.id]: newMsgs
+                    }));
+                  }
+                }}
                 darkMode={darkMode}
-                addMessage={addMessage}
+                addMessage={(message) => addMessage(selectedChat.id, message)}
                 onBack={() => setSelectedChat(null)}
                 setToast={setToast}
                 setShowConfirmation={setShowConfirmation}
@@ -214,6 +288,7 @@ const App = () => {
                 setSelectedChat={setSelectedChat}
                 setToast={setToast}
                 addNotification={addNotification}
+                messagesMap={messagesMap}
               />
             )}
           </div>
